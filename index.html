@@ -1119,13 +1119,22 @@ function renderVentas(D){
   h+=`</tr>`;
 
   const pivotProds=sortedProds(D.products);
-  let lastCatPiv='';
+  let lastCatPiv='';let catQty=0;let catByDate={};
+  function emitCatSubtotal(cat,qty,byDate){
+    const cc=CAT_COLOR[cat]||CAT_COLOR['Otros'];
+    let sr=`<tr><td class="sc1" style="background:${cc.bg};color:${cc.hd};font-size:10px;font-weight:700;padding:5px 9px 5px 18px;border-left:3px solid ${cc.bdr};border-top:1px solid ${cc.bdr}55">↳ Total ${cat}</td><td class="r sc2" style="background:${cc.bg};color:${cc.hd};font-weight:700;border-top:1px solid ${cc.bdr}55">${fmN(qty,1)}</td>`;
+    for(const d of showDates){const v=byDate[d]||0;sr+=`<td style="text-align:center;background:${cc.bg};color:${cc.hd};font-weight:700;border-top:1px solid ${cc.bdr}55">${v||''}</td>`;}
+    return sr+`</tr>`;
+  }
   for(const p of pivotProds){
     if(p.cat!==lastCatPiv){
+      if(lastCatPiv)h+=emitCatSubtotal(lastCatPiv,catQty,catByDate);
       const cc=CAT_COLOR[p.cat]||CAT_COLOR['Otros'];
       h+=`<tr><td colspan="${showDates.length+2}" style="position:sticky;left:0;z-index:1;background:${cc.bg};color:${cc.hd};font-size:10px;font-weight:700;padding:5px 9px;text-transform:uppercase;letter-spacing:.04em;border-left:3px solid ${cc.bdr}">${p.cat}</td></tr>`;
-      lastCatPiv=p.cat;
+      lastCatPiv=p.cat;catQty=0;catByDate={};
     }
+    catQty+=(p.qty||0);
+    for(const d of showDates)catByDate[d]=(catByDate[d]||0)+(p.byDate[d]||0);
     // Heat relative to this product's own max day
     const rowVals=showDates.map(d=>p.byDate[d]||0);
     const mxV=Math.max(...rowVals,1);
@@ -1145,6 +1154,7 @@ function renderVentas(D){
     }
     h+=`</tr>`;
   }
+  if(lastCatPiv)h+=emitCatSubtotal(lastCatPiv,catQty,catByDate);
   h+=`<tr class="subt"><td class="sc1">Pedidos del día</td><td class="r sc2">${fmN(D.totalPedidos,0)}</td>`;
   for(const d of showDates){
     const v=D.byDate[d]?.ped||0;
