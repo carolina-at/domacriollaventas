@@ -1811,14 +1811,15 @@ function renderCajita(D){
   const extEntries=Object.entries(cj.extras||{}).sort((a,b)=>b[1]-a[1]);
   const totExt=extEntries.reduce((s,[,v])=>s+v,0);
   const combos=Object.entries(cj.combos||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const topBebida=bebs[0];const topRegalo=regs[0];
+  const topSabor=emps[0];const topRegalo=regs[0];
 
   let h=`<div class="sec">
     <div class="st">🍱 Cajita Criolla</div>
-    <div class="krow" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+    <div class="krow" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
       <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Cajitas vendidas</div><div class="val" style="color:#880E4F">${total}</div></div>
-      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Bebida más elegida</div><div class="val" style="font-size:14px;color:#880E4F">${topBebida?topBebida[0]:'—'}</div></div>
-      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Regalo más pedido</div><div class="val" style="font-size:14px;color:#880E4F">${topRegalo?topRegalo[0].replace('Stickers - ','Stickers '):'—'}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Sabor más pedido</div><div class="val" style="font-size:14px;color:#880E4F">${topSabor?topSabor[0]:'—'}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Adiciones extra</div><div class="val" style="color:#880E4F">${totExt||0}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Regalo más pedido</div><div class="val" style="font-size:13px;color:#880E4F">${topRegalo?topRegalo[0].replace(/^Stickers?\s*-\s*/i,''):'—'}</div></div>
     </div>`;
 
   // Sabores empanada
