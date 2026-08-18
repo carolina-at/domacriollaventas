@@ -290,7 +290,7 @@ tr.dr:hover td.sc1,tr.dr:hover td.sc2{background:#fdf7f2;}
 const LOCALS=['Zelarrayan','Centro','Patagonia'];
 const DOW=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const CAT_ORDER=['Empanadas Horno','Empanadas Fritas','Empanadas Copetín','Pizzas','Postres','Dips',
-  'Bebidas — Gaseosas','Bebidas — Cervezas','Bebidas — Vinos','Bebidas — Jugos y Aguas','Promos'];
+  'Bebidas — Gaseosas','Bebidas — Cervezas','Bebidas — Vinos','Bebidas — Jugos y Aguas','Promos','Menú Infantil'];
 const CAT_MAP={
   'HORNEADAS':'Empanadas Horno','Horneadas':'Empanadas Horno',
   'EMPANADAS FRITAS':'Empanadas Fritas','Fritas':'Empanadas Fritas','FRITAS':'Empanadas Fritas',
@@ -604,8 +604,14 @@ function processLocal(name,data,costs,edName,edCost){
     }else{
       // Categoría Fudo desconocida: intentar inferir por nombre
       if(isForcePromo(prod))cat='Promos';
-      else if(/malbec|cabernet|vino\b|espumante|champagne/i.test(prod))cat='Bebidas — Vinos';
+      else if(/cajita/i.test(prod))cat='Menú Infantil';
+      else if(/malbec|cabernet|vino\b|espumante|champagne|tintas|torront[eé]s|pinot|syrah|bonarda|tempranillo/i.test(prod))cat='Bebidas — Vinos';
       else cat='Otros';
+    }
+    // Override por nombre de producto — tiene prioridad sobre categoría Fudo
+    if(cat!==null){
+      if(/cajita/i.test(prod))cat='Menú Infantil';
+      else if(/malbec|cabernet|vino\b|espumante|champagne|tintas|torront[eé]s|pinot|syrah|bonarda|tempranillo/i.test(prod))cat='Bebidas — Vinos';
     }
     if(cat===null)continue;
     // precio = total de la línea en Fudo; dividimos por qty para obtener precio unitario
@@ -620,6 +626,7 @@ function processLocal(name,data,costs,edName,edCost){
   // MODIFICADORES (reusa mAQ ya parseado, construye índice completo)
   const mA=mAQ;
   const mH=mHQ;const mI=mIQ;
+  const cajitaMap=new Map();// adicionId -> {oid, empanadas, extras, bebida, regalo}
   for(let r=1;r<mA.length;r++){
     const row=mA[r];
     if(String(row[mI['Cancelada']]||'').trim().toLowerCase()==='si')continue;
@@ -628,11 +635,39 @@ function processLocal(name,data,costs,edName,edCost){
     const mod=String(row[mI['Modificador']]||'').trim();
     const grupo=String(row[mI['Grupo modificador']]||'').trim();
     let qty=parseFloat(row[mI['Cantidad']])||0;
+    // Cajita Criolla: recolectar por Id. Adición
+    const prodNom=String(row[mI['Producto']]||'').trim();
+    if(prodNom.toLowerCase().includes('cajita')){
+      const aid=String(row[mI['Id. Adición']]||'').trim();
+      if(!cajitaMap.has(aid))cajitaMap.set(aid,{oid,empanadas:{},extras:{},bebida:'',regalo:''});
+      const cj=cajitaMap.get(aid);
+      const modNorm=mod.replace(/\s*-\s*INFANTIL$/i,'').trim();
+      const grupoL=grupo.toLowerCase();
+      if(grupoL.includes('empanadas'))cj.empanadas[modNorm]=(cj.empanadas[modNorm]||0)+qty;
+      else if(grupoL.includes('extra'))cj.extras[modNorm]=(cj.extras[modNorm]||0)+qty;
+      else if(grupoL.includes('bebida'))cj.bebida=modNorm;
+      else if(grupoL.includes('regalo'))cj.regalo=modNorm;
+      continue;
+    }
     if(grupo==='Pizza por mitades')qty*=0.5;
     if(/envio\s*gratis/i.test(mod))enviosSinCargo++;
     const cat=getModCat(mod,grupo);if(!cat)continue;
     addP(mod,cat,qty,ord);
     oPQ.set(oid,(oPQ.get(oid)||0)+qty);
+  }
+  // Agregar cajitas vendidas como producto en la categoría Menú Infantil
+  const cajitaData={total:0,byDate:{},empanadas:{},extras:{},bebidas:{},regalos:{},combos:{}};
+  for(const[,cj]of cajitaMap){
+    cajitaData.total++;
+    const ord2=orders.get(cj.oid);
+    const dt=ord2?.dateStr||'';
+    cajitaData.byDate[dt]=(cajitaData.byDate[dt]||0)+1;
+    for(const[s,q]of Object.entries(cj.empanadas))cajitaData.empanadas[s]=(cajitaData.empanadas[s]||0)+q;
+    for(const[s,q]of Object.entries(cj.extras))cajitaData.extras[s]=(cajitaData.extras[s]||0)+q;
+    if(cj.bebida)cajitaData.bebidas[cj.bebida]=(cajitaData.bebidas[cj.bebida]||0)+1;
+    if(cj.regalo)cajitaData.regalos[cj.regalo]=(cajitaData.regalos[cj.regalo]||0)+1;
+    const cs=Object.entries(cj.empanadas).sort((a,b)=>a[0].localeCompare(b[0])).map(([s,q])=>`${q>1?q+'× ':''}${s}`).join(' · ');
+    if(cs)cajitaData.combos[cs]=(cajitaData.combos[cs]||0)+1;
   }
 
   // PAGOS
@@ -772,7 +807,7 @@ function processLocal(name,data,costs,edName,edCost){
   return{name,period,uniqueDays,totalVentas,totalPedidos,totalProductos,
     ticketProm:totalPedidos?totalVentas/totalPedidos:0,
     prodPorTicket:totalPedidos?totalProductos/totalPedidos:0,
-    canal,products,byDate,byTurno:btSer,payMap,empMap,repMap,vendMap,discounts,deliveryStats};
+    canal,products,byDate,byTurno:btSer,payMap,empMap,repMap,vendMap,discounts,deliveryStats,cajitaData};
 }
 
 // ======== BUILD GLOBAL ========
@@ -828,6 +863,17 @@ function buildGlobal(locals){
       G.vendMap[e].ped+=v.ped;G.vendMap[e].ven+=v.ven;G.vendMap[e].prod+=v.prod;
     }
     G.discounts=[...G.discounts,...(L.discounts||[])];
+    if(L.cajitaData){
+      if(!G.cajitaData)G.cajitaData={total:0,byDate:{},empanadas:{},extras:{},bebidas:{},regalos:{},combos:{}};
+      const gc=G.cajitaData,lc=L.cajitaData;
+      gc.total+=(lc.total||0);
+      for(const[d,v]of Object.entries(lc.byDate||{}))gc.byDate[d]=(gc.byDate[d]||0)+v;
+      for(const[s,v]of Object.entries(lc.empanadas||{}))gc.empanadas[s]=(gc.empanadas[s]||0)+v;
+      for(const[s,v]of Object.entries(lc.extras||{}))gc.extras[s]=(gc.extras[s]||0)+v;
+      for(const[s,v]of Object.entries(lc.bebidas||{}))gc.bebidas[s]=(gc.bebidas[s]||0)+v;
+      for(const[s,v]of Object.entries(lc.regalos||{}))gc.regalos[s]=(gc.regalos[s]||0)+v;
+      for(const[s,v]of Object.entries(lc.combos||{}))gc.combos[s]=(gc.combos[s]||0)+v;
+    }
     const ds=L.deliveryStats||{};
     G.deliveryStats.ingresosEnvio=addN(G.deliveryStats.ingresosEnvio,ds.ingresosEnvio);
     G.deliveryStats.ingresoCE=addN(G.deliveryStats.ingresoCE,ds.ingresoCE);
@@ -998,6 +1044,7 @@ const CAT_COLOR={
   'Bebidas — Vinos':        {bg:'#F3E5F5',bdr:'#6A1B9A',hd:'#3A0060'},
   'Bebidas — Jugos y Aguas':{bg:'#E0F7FA',bdr:'#006064',hd:'#003A3D'},
   'Promos':                 {bg:'#F5F5F5',bdr:'#9E9591',hd:'#5A5A5A'},
+  'Menú Infantil':          {bg:'#FCE4EC',bdr:'#E91E63',hd:'#880E4F'},
   'Otros':                  {bg:'#FAFAFA',bdr:'#BDBDBD',hd:'#616161'},
 };
 
@@ -1168,6 +1215,7 @@ function renderVentas(D){
     <span><span class="dot" style="background:var(--M)"></span>Pico del producto</span>
   </div></div>`;
 
+  h+=renderCajita(D);
   return h;
 }
 
@@ -1739,6 +1787,78 @@ function renderCostos(D){
   </tr>`;
   h+=`</table></div>
   <p class="note" style="margin-top:8px">Margen en rojo &lt; 20% · verde &gt; 50%. Precio de lista = precio más frecuente registrado en el período.</p></div>`;
+  return h;
+}
+
+// ======== RENDER MENÚ INFANTIL ========
+function renderCajita(D){
+  const cj=D.cajitaData||{};
+  const total=cj.total||0;
+  if(!total)return`<div class="sec"><div class="st">🍱 Menú Infantil</div><p class="note">No hay datos de Cajita Criolla en este período. Procesá los archivos XLS para ver el análisis.</p></div>`;
+  const emps=Object.entries(cj.empanadas||{}).sort((a,b)=>b[1]-a[1]);
+  const totEmp=emps.reduce((s,[,v])=>s+v,0)||1;
+  const bebs=Object.entries(cj.bebidas||{}).sort((a,b)=>b[1]-a[1]);
+  const totBeb=bebs.reduce((s,[,v])=>s+v,0)||1;
+  const regs=Object.entries(cj.regalos||{}).sort((a,b)=>b[1]-a[1]);
+  const totReg=regs.reduce((s,[,v])=>s+v,0)||1;
+  const extEntries=Object.entries(cj.extras||{}).sort((a,b)=>b[1]-a[1]);
+  const totExt=extEntries.reduce((s,[,v])=>s+v,0);
+  const combos=Object.entries(cj.combos||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const topBebida=bebs[0];const topRegalo=regs[0];
+
+  let h=`<div class="sec">
+    <div class="st">🍱 Cajita Criolla</div>
+    <div class="krow" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Cajitas vendidas</div><div class="val" style="color:#880E4F">${total}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Bebida más elegida</div><div class="val" style="font-size:14px;color:#880E4F">${topBebida?topBebida[0]:'—'}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Regalo más pedido</div><div class="val" style="font-size:14px;color:#880E4F">${topRegalo?topRegalo[0].replace('Stickers - ','Stickers '):'—'}</div></div>
+    </div>`;
+
+  // Sabores empanada
+  h+=`<div class="st">Sabores de empanada</div>
+    <div class="tw" style="max-height:none"><table style="font-size:12px">
+      <tr><th>Sabor</th><th class="r">Unidades</th><th class="r">%</th><th style="min-width:160px"></th></tr>`;
+  for(const[sab,qty]of emps){
+    const pct=qty/totEmp*100;
+    h+=`<tr class="dr"><td><strong>${sab}</strong></td>
+      <td class="r" style="font-weight:700">${fmN(qty,0)}</td>
+      <td class="r">${fmN(pct,1)}%</td>
+      <td><div style="background:var(--OR);height:8px;border-radius:4px;width:${Math.round(pct*1.6)}px;margin:4px 0"></div></td></tr>`;
+  }
+  h+=`<tr class="subt"><td>Total empanadas</td><td class="r">${fmN(totEmp,0)}</td><td></td><td></td></tr>
+    </table></div>`;
+
+  // Extras
+  if(totExt>0){
+    h+=`<div class="st" style="margin-top:14px">Empanadas extra (adicionales)</div>
+      <div class="tw" style="max-height:none"><table style="font-size:12px">
+        <tr><th>Sabor</th><th class="r">Unidades</th></tr>`;
+    for(const[sab,qty]of extEntries)h+=`<tr class="dr"><td>${sab}</td><td class="r" style="font-weight:700">${fmN(qty,0)}</td></tr>`;
+    h+=`<tr class="subt"><td>Total extras</td><td class="r">${fmN(totExt,0)}</td></tr></table></div>`;
+  }
+
+  // Bebida y regalo lado a lado
+  h+=`<div class="g2" style="margin-top:14px"><div>
+    <div class="st">Bebida elegida</div>
+    <div class="tw" style="max-height:none"><table style="font-size:12px">
+      <tr><th>Bebida</th><th class="r">Cajitas</th><th class="r">%</th></tr>`;
+  for(const[beb,n]of bebs)h+=`<tr class="dr"><td>${beb}</td><td class="r" style="font-weight:700">${n}</td><td class="r">${fmN(n/totBeb*100,1)}%</td></tr>`;
+  h+=`</table></div></div><div>
+    <div class="st">Regalo elegido</div>
+    <div class="tw" style="max-height:none"><table style="font-size:12px">
+      <tr><th>Sticker</th><th class="r">Cajitas</th><th class="r">%</th></tr>`;
+  for(const[reg,n]of regs)h+=`<tr class="dr"><td>${reg.replace('Stickers - ','')}</td><td class="r" style="font-weight:700">${n}</td><td class="r">${fmN(n/totReg*100,1)}%</td></tr>`;
+  h+=`</table></div></div></div>`;
+
+  // Combinaciones más pedidas
+  if(combos.length){
+    h+=`<div class="st" style="margin-top:14px">Combinaciones más pedidas</div>
+      <div class="tw" style="max-height:none"><table style="font-size:12px">
+        <tr><th>Combinación de sabores</th><th class="r">Veces</th></tr>`;
+    for(const[combo,n]of combos)h+=`<tr class="dr"><td>${combo}</td><td class="r" style="font-weight:700">${n}</td></tr>`;
+    h+=`</table></div>`;
+  }
+  h+=`</div>`;
   return h;
 }
 
