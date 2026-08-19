@@ -1814,7 +1814,7 @@ function renderCajita(D){
   const topSabor=emps[0];const topRegalo=regs[0];
   // Usar qty real de la hoja Adiciones (más preciso que el conteo de modificadores)
   let cajitasVendidas=0;
-  if(D.products){for(const[nm,p]of D.products){if(/cajita/i.test(nm))cajitasVendidas+=(p.qty||0);}}
+  if(D.products){for(const p of D.products){if(/cajita/i.test(p.name))cajitasVendidas+=(p.qty||0);}}
   if(!cajitasVendidas)cajitasVendidas=total;
 
   let h=`<div class="sec">
@@ -2374,7 +2374,11 @@ function renderContent(){
     const pd=getActivePd();
     if(!pd){document.getElementById('cnt').innerHTML='<p style="padding:20px;color:var(--GR)">Sin datos para este período.</p>';return;}
     const D=curTab===0?pd.global:pd.locals[curTab-1];
-    document.getElementById('cnt').innerHTML=renderSec(curSec,D,pd.locals);
+    try{
+      document.getElementById('cnt').innerHTML=renderSec(curSec,D,pd.locals);
+    }catch(e){
+      document.getElementById('cnt').innerHTML=`<div style="padding:20px;background:#fff3f3;border:2px solid #c62828;border-radius:8px;margin:16px"><strong style="color:#c62828">Error al renderizar pestaña "${curSec}":</strong><br><code style="font-size:12px;color:#333">${e.message}</code><br><pre style="font-size:11px;color:#555;margin-top:8px;white-space:pre-wrap">${e.stack}</pre></div>`;
+    }
   }
   document.getElementById('cnt').scrollTop=0;
   window.scrollTo(0,0);
