@@ -1819,11 +1819,9 @@ function renderCajita(D){
 
   let h=`<div class="sec">
     <div class="st">🍱 Cajita Criolla</div>
-    <div class="krow" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+    <div class="krow" style="grid-template-columns:repeat(2,1fr);margin-bottom:18px">
       <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Cajitas vendidas</div><div class="val" style="color:#880E4F">${cajitasVendidas}</div></div>
-      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Sabor más pedido</div><div class="val" style="font-size:14px;color:#880E4F">${topSabor?topSabor[0]:'—'}</div></div>
       <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Adiciones extra</div><div class="val" style="color:#880E4F">${totExt||0}</div></div>
-      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Regalo más pedido</div><div class="val" style="font-size:13px;color:#880E4F">${topRegalo?topRegalo[0].replace(/^Stickers?\s*-\s*/i,''):'—'}</div></div>
     </div>`;
 
   // Sabores empanada
