@@ -1060,13 +1060,21 @@ function renderVentas(D){
   const prods=allProds.filter(p=>p.cat!=='Promos');
   const promos=allProds.filter(p=>p.cat==='Promos');
 
+  // Override qty/byDate para Cajita Criolla (usa modificadores validados, excluye falsas de Pedidos Ya)
+  const cajitaValidQ=D.cajitaData?.total||0;
+  const cajitaByDate=D.cajitaData?.byDate||{};
+  for(const p of [...prods,...promos]){
+    p._dq=/cajita/i.test(p.name)&&cajitaValidQ?cajitaValidQ:p.qty;
+    p._bd=/cajita/i.test(p.name)?cajitaByDate:p.byDate;
+  }
+
   // Rank within category
   const catRk={};
   for(const p of prods){catRk[p.cat]=(catRk[p.cat]||0)+1;p._rk=catRk[p.cat]}
 
   // Category totals
   const catTotQ={};const catTotV={};
-  for(const p of prods){catTotQ[p.cat]=(catTotQ[p.cat]||0)+p.qty;catTotV[p.cat]=(catTotV[p.cat]||0)+p.revenue}
+  for(const p of prods){catTotQ[p.cat]=(catTotQ[p.cat]||0)+p._dq;catTotV[p.cat]=(catTotV[p.cat]||0)+p.revenue}
 
   const hasCost=D.products.some(p=>p.cost!=null);
   const totQ=D.totalProductos||1;
@@ -1114,10 +1122,10 @@ function renderVentas(D){
       h+=`<tr class="${rowCls}">
         <td class="c"><span class="rk${isTop?' t':''}">${p._rk}</span></td>
         <td>${elLabel(p.name)}</td>
-        <td class="r">${fmN(p.qty,1)}</td>
+        <td class="r">${fmN(p._dq,1)}</td>
         <td class="r">${fm$(p.revenue)}</td>
         <td class="r">${avgPx?fm$(avgPx):'—'}</td>
-        <td class="r">${fmPct(p.qty,totQ)}</td>
+        <td class="r">${fmPct(p._dq,totQ)}</td>
         <td class="r">${fmN(p.byTurno.Mediodía,1)}</td>
         <td class="r">${fmN(p.byTurno.Noche,1)}</td>
         ${hasCost?`<td class="r">${p.cost!=null?fm$(p.cost):'—'}</td><td class="r">${marg!=null?fmN(marg,1)+'%':'—'}</td>`:''}
@@ -1187,14 +1195,14 @@ function renderVentas(D){
       h+=`<tr><td colspan="${showDates.length+2}" style="position:sticky;left:0;z-index:1;background:${cc.bg};color:${cc.hd};font-size:10px;font-weight:700;padding:5px 9px;text-transform:uppercase;letter-spacing:.04em;border-left:3px solid ${cc.bdr}">${p.cat}</td></tr>`;
       lastCatPiv=p.cat;catQty=0;catByDate={};
     }
-    catQty+=(p.qty||0);
-    for(const d of showDates)catByDate[d]=(catByDate[d]||0)+(p.byDate[d]||0);
+    catQty+=(p._dq||0);
+    for(const d of showDates)catByDate[d]=(catByDate[d]||0)+(p._bd[d]||0);
     // Heat relative to this product's own max day
-    const rowVals=showDates.map(d=>p.byDate[d]||0);
+    const rowVals=showDates.map(d=>p._bd[d]||0);
     const mxV=Math.max(...rowVals,1);
-    h+=`<tr class="dr"><td class="sc1">${elLabel(p.name)}</td><td class="r sc2" style="font-weight:700">${fmN(p.qty,1)}</td>`;
+    h+=`<tr class="dr"><td class="sc1">${elLabel(p.name)}</td><td class="r sc2" style="font-weight:700">${fmN(p._dq,1)}</td>`;
     for(const d of showDates){
-      const v=p.byDate[d]||0;
+      const v=p._bd[d]||0;
       let cs='text-align:center;font-variant-numeric:tabular-nums;font-size:11px;';
       if(v===0){cs+='color:var(--BD);';}
       else{
