@@ -1811,16 +1811,10 @@ function renderCajita(D){
   const extEntries=Object.entries(cj.extras||{}).sort((a,b)=>b[1]-a[1]);
   const totExt=extEntries.reduce((s,[,v])=>s+v,0);
   const combos=Object.entries(cj.combos||{}).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const topSabor=emps[0];const topRegalo=regs[0];
-  // Usar qty real de la hoja Adiciones (más preciso que el conteo de modificadores)
-  let cajitasVendidas=0;
-  if(D.products){for(const p of D.products){if(/cajita/i.test(p.name))cajitasVendidas+=(p.qty||0);}}
-  if(!cajitasVendidas)cajitasVendidas=total;
-
   let h=`<div class="sec">
     <div class="st">🍱 Cajita Criolla</div>
     <div class="krow" style="grid-template-columns:repeat(2,1fr);margin-bottom:18px">
-      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Cajitas vendidas</div><div class="val" style="color:#880E4F">${cajitasVendidas}</div></div>
+      <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Cajitas vendidas</div><div class="val" style="color:#880E4F">${total}</div></div>
       <div class="kpi" style="border-left:4px solid #E91E63"><div class="lbl">Adiciones extra</div><div class="val" style="color:#880E4F">${totExt||0}</div></div>
     </div>`;
 
