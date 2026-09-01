@@ -2179,7 +2179,9 @@ function normalizeAppData(data){
 function mergeByAlias(products){
   const map=new Map();
   for(const p of products){
+    if(isExclude(p.name))continue;
     const normName=normProdName(p.name);
+    if(isExclude(normName))continue;
     if(!map.has(normName)){
       map.set(normName,{...p,name:normName});
     }else{
