@@ -500,6 +500,7 @@ function isForcePromo(name){
 // Productos que NUNCA son Promos aunque aparezcan en Modificadores
 function isNeverPromo(name){
   const n=name.toLowerCase();
+  if(/\bH$/.test(name.trim())||/\bF$/.test(name.trim()))return true;// empanadas canónicas
   return /empanada|edici[oó]n\s*limitada|pizza\s+\w|postre|cheesecake|cerveza|gaseosa|\bdip\b/.test(n);
 }
 // Productos a excluir completamente (ruido del sistema o productos discontinuados)
@@ -507,6 +508,7 @@ function isExclude(name){
   if(/gen[eé]rico\s*(mas|más)?delivery/i.test(name)||/^gen[eé]rico$/i.test(name.trim()))return true;
   if(/bondiola\s*agridulce/i.test(name))return true;
   if(/empanada\s*de\s*at[uú]n|^at[uú]n\s*H$/i.test(name))return true;
+  if(/salsa\s*gratis/i.test(name))return true;
   return false;
 }
 const SECS=[
