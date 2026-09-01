@@ -309,8 +309,8 @@ const CAT_MAP={
 // Productos individuales de Pedidos Ya que PY renombra — van a su categoría real
 function inferPYCat(name){
   const n=name.toLowerCase();
-  if(/\bh$/.test(name.trim())||/horneada|al horno/.test(n))return'Empanadas Horno';
-  if(/\bf$/.test(name.trim())||/frita/.test(n))return'Empanadas Fritas';
+  if(/\bh$/i.test(name.trim())||/horneada|al horno/.test(n))return'Empanadas Horno';
+  if(/\bf$/i.test(name.trim())||/frita/.test(n))return'Empanadas Fritas';
   if(/pizza/.test(n))return'Pizzas';
   if(/imperial|heineken|cerveza|ipa\b|lager|apa\b|scalonipa|kamikaze|playita|moka|pomelito|rubia|doble ipa/.test(n))return'Bebidas — Cervezas';
   if(/coca|cola cola|sprite|fanta|schweppes|7up|pepsi|gaseosa/.test(n))return'Bebidas — Gaseosas';
@@ -2183,8 +2183,12 @@ function mergeByAlias(products){
     if(isExclude(p.name))continue;
     const normName=normProdName(p.name);
     if(isExclude(normName))continue;
+    // Corregir categoría según nombre canónico (evita que aliases guardados con cat='Promos' persistan)
+    let fixedCat=p.cat;
+    if(/\bH$/i.test(normName.trim()))fixedCat='Empanadas Horno';
+    else if(/\bF$/i.test(normName.trim()))fixedCat='Empanadas Fritas';
     if(!map.has(normName)){
-      map.set(normName,{...p,name:normName});
+      map.set(normName,{...p,name:normName,cat:fixedCat});
     }else{
       const ex=map.get(normName);
       ex.qty=(ex.qty||0)+(p.qty||0);
