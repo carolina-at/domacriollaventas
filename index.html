@@ -466,6 +466,19 @@ const PROD_ALIAS={
   'Empanada de jamon y queso frita':'Jamon y queso F',
   'Empanada de carne a cuchillo frita':'Carne cuchillo F',
   'Empanada de panceta y verdeo frita':'Panceta y Verdeo F',
+  // Variantes con tilde y formas cortas (sin "Empanada de" ni prefijo)
+  'Jamón y queso al horno':'Jamon y queso H',
+  'Jamon y queso al horno':'Jamon y queso H',
+  '(PY) Empanada de jamón y queso al horno':'Jamon y queso H',
+  '(PY) Empanada de Jamón y queso al horno':'Jamon y queso H',
+  'Carne a cuchillo al horno':'Carne cuchillo H',
+  'Carne y queso al horno':'Carne y queso H',
+  'Pollo y cheddar al horno':'Pollo y cheddar H',
+  'Carne picante al horno':'Carne picante H',
+  'Cerdo a la barbacoa horneada':'Cerdo a la barbacoa H',
+  '(PY) Empanada de atun':'Atún H',
+  '(PY) Empanada de Atun':'Atún H',
+  '(PY) Empanada de atún':'Atún H',
   // Edición limitada (empanada especial del mes)
   'Edición limitada':'Edición Limitada H',
   'Edicion limitada':'Edición Limitada H',
@@ -489,9 +502,12 @@ function isNeverPromo(name){
   const n=name.toLowerCase();
   return /empanada|edici[oó]n\s*limitada|pizza\s+\w|postre|cheesecake|cerveza|gaseosa|\bdip\b/.test(n);
 }
-// Productos a excluir completamente (ruido del sistema)
+// Productos a excluir completamente (ruido del sistema o productos discontinuados)
 function isExclude(name){
-  return /gen[eé]rico\s*(mas|más)?delivery/i.test(name)||/^gen[eé]rico$/i.test(name.trim());
+  if(/gen[eé]rico\s*(mas|más)?delivery/i.test(name)||/^gen[eé]rico$/i.test(name.trim()))return true;
+  if(/bondiola\s*agridulce/i.test(name))return true;
+  if(/empanada\s*de\s*at[uú]n|^at[uú]n\s*H$/i.test(name))return true;
+  return false;
 }
 const SECS=[
   {id:'evolucion',lb:'📈 Evolución'},
@@ -739,7 +755,7 @@ function processLocal(name,data,costs,edName,edCost){
     if(cat!==null){
       if(/cajita/i.test(prod))cat='Menú Infantil';
       else if(/malbec|cabernet|vino\b|espumante|champagne|tintas|torront[eé]s|pinot|syrah|bonarda|tempranillo/i.test(prod))cat='Bebidas — Vinos';
-      else if(/empanada|al horno\b/i.test(prod)||/\bH$/.test(prod.trim())||/\bF$/.test(prod.trim())){
+      else if(!/(^\d+\s*empanada|pack\s*\d|\bpromo\b|\+\s*\d+\s*gratis)/i.test(prod)&&(/empanada.*al horno|al horno|horneada\b/i.test(prod)||(/empanada/i.test(prod)&&/frita/i.test(prod))||/\bH$/.test(prod.trim())||/\bF$/.test(prod.trim()))){
         if(/frita|\bF$/.test(prod.trim()))cat='Empanadas Fritas';
         else cat='Empanadas Horno';
       }
