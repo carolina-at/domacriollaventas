@@ -309,7 +309,7 @@ const CAT_MAP={
 // Productos individuales de Pedidos Ya que PY renombra — van a su categoría real
 function inferPYCat(name){
   const n=name.toLowerCase();
-  if(/\bh$/.test(name.trim())||/horneada/.test(n))return'Empanadas Horno';
+  if(/\bh$/.test(name.trim())||/horneada|al horno/.test(n))return'Empanadas Horno';
   if(/\bf$/.test(name.trim())||/frita/.test(n))return'Empanadas Fritas';
   if(/pizza/.test(n))return'Pizzas';
   if(/imperial|heineken|cerveza|ipa\b|lager|apa\b|scalonipa|kamikaze|playita|moka|pomelito|rubia|doble ipa/.test(n))return'Bebidas — Cervezas';
@@ -350,7 +350,122 @@ const PROD_ALIAS={
   'Los Patos 4 tintas':'Los Patos 4 Tintas',
   'LOS PATOS 4 TINTAS COLECCION':'Los Patos 4 Tintas',
   'Los Patos 4 Tintas Coleccion':'Los Patos 4 Tintas',
-  'Los Patos Coleccion Malbec':'Los Patos Malbec'
+  'Los Patos Coleccion Malbec':'Los Patos Malbec',
+  // Pedidos Ya — empanadas horneadas
+  '(PY) Empanada de jamon y queso al horno':'Jamon y queso H',
+  '(PY) Empanada de Jamon y queso al horno':'Jamon y queso H',
+  '(PY) Empanada de jamon y Queso al horno':'Jamon y queso H',
+  '(PY) Empanada de carne al horno':'Carne H',
+  '(PY) Empanada de Carne al horno':'Carne H',
+  '(PY) Empanada de carne a cuchillo al horno':'Carne cuchillo H',
+  '(PY) Empanada de Carne a cuchillo al horno':'Carne cuchillo H',
+  '(PY) Empanada de carbonara al horno':'Carbonara H',
+  '(PY) Empanada de Carbonara al horno':'Carbonara H',
+  '(PY) Empanada de hamburguesa al horno':'Hamburguesa H',
+  '(PY) Empanada de Hamburguesa al horno':'Hamburguesa H',
+  '(PY) Empanada de Hamburguesa':'Hamburguesa H',
+  '(PY) Empanada de hamburguesa':'Hamburguesa H',
+  '(PY) Empanada de verdura al horno':'Verdura H',
+  '(PY) Empanada de Verdura al horno':'Verdura H',
+  '(PY) Empanada de pollo y cheddar al horno':'Pollo y cheddar H',
+  '(PY) Empanada de Pollo y cheddar al horno':'Pollo y cheddar H',
+  '(PY) Empanada de choclo al horno':'Choclo H',
+  '(PY) Empanada de Choclo al horno':'Choclo H',
+  '(PY) Empanada de roquefort al horno':'Roquefort H',
+  '(PY) Empanada de Roquefort al horno':'Roquefort H',
+  '(PY) Empanada de pastel de papa al horno':'Pastel de papa H',
+  '(PY) Empanada de Pastel de papa al horno':'Pastel de papa H',
+  '(PY) Empanada de pastel de papa':'Pastel de papa H',
+  '(PY) Empanada de Pastel de papa':'Pastel de papa H',
+  '(PY) Empanada de carne picante al horno':'Carne picante H',
+  '(PY) Empanada de Carne picante al horno':'Carne picante H',
+  '(PY) Empanada de panceta y verdeo al horno':'Panceta y Verdeo H',
+  '(PY) Empanada de Panceta y verdeo al horno':'Panceta y Verdeo H',
+  '(PY) Empanada de panceta y verdeo':'Panceta y Verdeo H',
+  '(PY) Empanada de Panceta y verdeo':'Panceta y Verdeo H',
+  '(PY) Empanada de cebolla y queso al horno':'Queso y cebolla H',
+  '(PY) Empanada de Cebolla y queso al horno':'Queso y cebolla H',
+  '(PY) Empanada de queso y cebolla al horno':'Queso y cebolla H',
+  '(PY) Empanada de carne y queso al horno':'Carne y queso H',
+  '(PY) Empanada de Carne y queso al horno':'Carne y queso H',
+  '(PY) Empanada de pollo al horno':'Pollo H',
+  '(PY) Empanada de Pollo al horno':'Pollo H',
+  '(PY) Empanada capresse al horno':'Capresse H',
+  '(PY) Empanada de Capresse al horno':'Capresse H',
+  '(PY) Empanada de edicion limitada al horno':'Edición Limitada H',
+  '(PY) Empanada de Edicion limitada al horno':'Edición Limitada H',
+  // Pedidos Ya — empanadas fritas
+  '(PY) Empanada de carne frita':'Carne F',
+  '(PY) Empanada de Carne frita':'Carne F',
+  '(PY) Empanada Estilo Campo frita':'Estilo campo F',
+  '(PY) Empanada estilo campo frita':'Estilo campo F',
+  '(PY) Empanada de pollo frita':'Pollo F',
+  '(PY) Empanada de Pollo frita':'Pollo F',
+  '(PY) Empanada de roquefort frita':'Roquefort F',
+  '(PY) Empanada de Roquefort frita':'Roquefort F',
+  '(PY) Empanada de jamon y queso frita':'Jamon y queso F',
+  '(PY) Empanada de verdura frita':'Verdura F',
+  '(PY) Empanada de carne a cuchillo frita':'Carne cuchillo F',
+  '(PY) Empanada de hamburguesa frita':'Hamburguesa F',
+  '(PY) Empanada de Hamburguesa frita':'Hamburguesa F',
+  // Pedidos Ya — variantes sin "de"
+  '(PY) Empanada carbonara al horno':'Carbonara H',
+  '(PY) Empanada Carbonara al horno':'Carbonara H',
+  '(PY) Empanada capresse al horno':'Capresse H',
+  '(PY) Empanada Capresse al horno':'Capresse H',
+  '(PY) Empanada Cerdo A La Mostaza':'Cerdo a la mostaza H',
+  '(PY) Empanada cerdo a la mostaza':'Cerdo a la mostaza H',
+  '(PY) Empanada de panceta y ciruelas al horno':'Panceta y ciruela H',
+  '(PY) Empanada de Panceta y ciruelas al horno':'Panceta y ciruela H',
+  '(PY) Empanada de jamón y queso frita':'Jamon y queso F',
+  '(PY) Empanada de Jamón y queso frita':'Jamon y queso F',
+  '(PY) Empanada de panceta y verdeo frita':'Panceta y Verdeo F',
+  '(PY) Empanada de Panceta y verdeo frita':'Panceta y Verdeo F',
+  '(PY) Empanada de calabresa al horno':'Calabresa H',
+  '(PY) Empanada de Calabresa al horno':'Calabresa H',
+  '(PY) Empanada calabresa al horno':'Calabresa H',
+  '(PY) Empanada de cerdo a la mostaza al horno':'Cerdo a la mostaza H',
+  // Sin prefijo (PY) — variantes con "al horno" / "frita" sin H/F
+  'Empanada de choclo al horno':'Choclo H',
+  'Empanada de verdura al horno':'Verdura H',
+  'Empanada carbonara al horno':'Carbonara H',
+  'Empanada de roquefort al horno':'Roquefort H',
+  'Empanada de Roquefort al horno':'Roquefort H',
+  'Carne picante al horno':'Carne picante H',
+  'Empanada de pollo al horno':'Pollo H',
+  'Empanada de Pollo al horno':'Pollo H',
+  'Empanada capresse al horno':'Capresse H',
+  'Empanada de Capresse al horno':'Capresse H',
+  'Pollo y cheddar al horno':'Pollo y cheddar H',
+  'Empanada de carne al horno':'Carne H',
+  'Empanada de Carne al horno':'Carne H',
+  'Empanada calabresse al horno':'Calabresa H',
+  'Empanada de calabresa al horno':'Calabresa H',
+  'Panceta y ciruelas al horno':'Panceta y ciruela H',
+  'Empanada de panceta y ciruelas al horno':'Panceta y ciruela H',
+  'Empanada de Hamburguesa':'Hamburguesa H',
+  'Empanada de hamburguesa':'Hamburguesa H',
+  'Empanada de jamon y queso al horno':'Jamon y queso H',
+  'Empanada de Jamon y queso al horno':'Jamon y queso H',
+  'Empanada de carne a cuchillo al horno':'Carne cuchillo H',
+  'Empanada de Carne a cuchillo al horno':'Carne cuchillo H',
+  'Empanada de carne picante al horno':'Carne picante H',
+  'Empanada de Carne picante al horno':'Carne picante H',
+  'Empanada de panceta y verdeo al horno':'Panceta y Verdeo H',
+  'Empanada de Panceta y verdeo al horno':'Panceta y Verdeo H',
+  'Empanada de cebolla y queso al horno':'Queso y cebolla H',
+  'Empanada de carne y queso al horno':'Carne y queso H',
+  'Empanada de pastel de papa al horno':'Pastel de papa H',
+  'Empanada de pastel de papa':'Pastel de papa H',
+  'Empanada de pollo y cheddar al horno':'Pollo y cheddar H',
+  'Empanada de carne frita':'Carne F',
+  'Empanada estilo campo frita':'Estilo campo F',
+  'Empanada Estilo Campo frita':'Estilo campo F',
+  'Empanada de pollo frita':'Pollo F',
+  'Empanada de roquefort frita':'Roquefort F',
+  'Empanada de jamon y queso frita':'Jamon y queso F',
+  'Empanada de carne a cuchillo frita':'Carne cuchillo F',
+  'Empanada de panceta y verdeo frita':'Panceta y Verdeo F'
 };
 function normProdName(name){
   if(PROD_ALIAS[name])return PROD_ALIAS[name];
@@ -619,6 +734,10 @@ function processLocal(name,data,costs,edName,edCost){
     if(cat!==null){
       if(/cajita/i.test(prod))cat='Menú Infantil';
       else if(/malbec|cabernet|vino\b|espumante|champagne|tintas|torront[eé]s|pinot|syrah|bonarda|tempranillo/i.test(prod))cat='Bebidas — Vinos';
+      else if(/empanada|al horno\b/i.test(prod)||/\bH$/.test(prod.trim())||/\bF$/.test(prod.trim())){
+        if(/frita|\bF$/.test(prod.trim()))cat='Empanadas Fritas';
+        else cat='Empanadas Horno';
+      }
     }
     if(cat===null)continue;
     // precio = total de la línea en Fudo; dividimos por qty para obtener precio unitario
