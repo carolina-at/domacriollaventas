@@ -313,7 +313,7 @@ function inferPYCat(name){
   if(/\bf$/.test(name.trim())||/frita/.test(n))return'Empanadas Fritas';
   if(/pizza/.test(n))return'Pizzas';
   if(/imperial|heineken|cerveza|ipa\b|lager|apa\b|scalonipa|kamikaze|playita|moka|pomelito|rubia|doble ipa/.test(n))return'Bebidas — Cervezas';
-  if(/coca|sprite|fanta|schweppes|7up|pepsi|gaseosa/.test(n))return'Bebidas — Gaseosas';
+  if(/coca|cola cola|sprite|fanta|schweppes|7up|pepsi|gaseosa/.test(n))return'Bebidas — Gaseosas';
   if(/aquarius|bonaqua|agua\b|jugo/.test(n))return'Bebidas — Jugos y Aguas';
   if(/vino|malbec|cabernet|tintas/.test(n))return'Bebidas — Vinos';
   if(/\bdip\b/.test(n))return'Dips';
@@ -465,7 +465,12 @@ const PROD_ALIAS={
   'Empanada de roquefort frita':'Roquefort F',
   'Empanada de jamon y queso frita':'Jamon y queso F',
   'Empanada de carne a cuchillo frita':'Carne cuchillo F',
-  'Empanada de panceta y verdeo frita':'Panceta y Verdeo F'
+  'Empanada de panceta y verdeo frita':'Panceta y Verdeo F',
+  // Edición limitada (empanada especial del mes)
+  'Edición limitada':'Edición Limitada H',
+  'Edicion limitada':'Edición Limitada H',
+  '(PY) Edición limitada':'Edición Limitada H',
+  '(PY) Edicion limitada':'Edición Limitada H'
 };
 function normProdName(name){
   if(PROD_ALIAS[name])return PROD_ALIAS[name];
