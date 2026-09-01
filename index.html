@@ -728,7 +728,8 @@ function processLocal(name,data,costs,edName,edCost){
     if(String(row[aI['Cancelada']]||'').trim().toLowerCase()==='si')continue;
     const oid=String(row[aI['Id. Venta']]||'').trim();if(!orders.has(oid))continue;
     const ord=orders.get(oid);
-    const prod=String(row[aI['Producto']]||'').trim();
+    let prod=String(row[aI['Producto']]||'').trim();
+    prod=normProdName(prod);// normalizar antes de categorizar para que los alias tengan efecto
     const catRaw=String(row[aI['Categoría']]||'').trim();
     const qty=parseFloat(row[aI['Cantidad']])||0;
     const precio=parseFloat(row[aI['Precio']])||0;
